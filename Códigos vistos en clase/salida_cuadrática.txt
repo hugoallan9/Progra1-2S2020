@@ -1,0 +1,11 @@
+La ecuación a resolver es:  1x^2 + 5x + 2   = 0 
+La solución es: 
+ x_1 = -0.438447, x_2 = -0.438447La ecuación a resolver es:  1x^2 + 4x + 8   = 0 
+La solución es: 
+ La ecuación a resolver es:  1x^2 + 5x + 8   = 0 
+La solución es: 
+ La ecuación a resolver es:  1x^2 + 5x + 8   = 0 
+La solución es: 
+ La ecuación a resolver es:  1x^2 + 5x + 8   = 0 
+La solución es: 
+ x_1 = -1.000000, x_2 = -1.000000
