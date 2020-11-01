@@ -108,7 +108,7 @@ class ventana(Gtk.Window):
 		:return:
 		'''
 		now = datetime.now()
-		titulo = str(now.day) + '-' + str(now.month) + '-' + str(now.day) + '  ' + str(now.hour) + ':' + str(now.minute)
+		titulo = str(now.day) + '-' + str(now.month) + '-' + str(now.year) + '  ' + str(now.hour) + ':' + str(now.minute)
 		self.figure.savefig(os.getcwd()+'/capturas/'+titulo+'.png')
 
 	def create_ui_manager(self):
@@ -266,7 +266,7 @@ class ventana(Gtk.Window):
 			for element in row:
 				coso2+=str(element)+' '
 			coso2+='\n'
-		titulo = str(now.day)+'-'+str(now.month)+'-'+str(now.day)+'  '+str(now.hour)+':'+str(now.minute)
+		titulo = str(now.day)+'-'+str(now.month)+'-'+str(now.year)+'  '+str(now.hour)+':'+str(now.minute)
 		a_file = open(titulo+'.jvpm2', 'w+')
 		a_file.write(str(self.dimensionMatriz)+'\n')
 		contenido = coso1
