@@ -8,12 +8,9 @@ import tweepy
 
 from PIL import Image,ImageFont,ImageDraw, ImageOps, ImageChops
 
-import numpy as np #Tengo entendido que para el uso de matrices
-from numpy import save
 
 import os
 import webbrowser
-from datetime import datetime
 
 
 UI_INFO = """
@@ -43,38 +40,38 @@ class ventana(Gtk.Window):
 	def __init__(self):
 		Gtk.Window.__init__(self, title='ASCII art')
 
-		self.carga = 'No'
-		self.sesion = 'No'
-		self.state = False
+		self.carga = 'No' #Para controlar cuando hay una imagen en ASCII art
+		self.sesion = 'No' #Para controlar cuando hay credenciales validas
+		self.state = False #Para controlar el invertir la imgen
 		self.img = Gtk.Image()
 		self.imgRes = Gtk.Image()
 		self.imgPIL = Image.Image
 		self.imgPILASCII = Image.Image
-		st = '"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,^.'
-		#st = '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\^'
+		st = '"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,^.' #Escala de grises inicial
 		self.charsList = list(st)
 		self.chars = self.charsList
 
+		#Credenciales de twiiter
 		self.APIkey = ''
 		self.APIkeyS = ''
 		self.AccessToken = ''
 		self.AccessTokenS = ''
 
-
+		#Widget de la ventana
 		btnConvertir = Gtk.Button(label='Convertir')
 		btnConvertir.connect('clicked', self.convertir)
 		btnInvertir = Gtk.ToggleButton(label='Invertir')
 		btnInvertir.connect('toggled', self.invertir,'1')
 		self.btnGuardar = Gtk.Button(label='Guardar')
 		self.btnGuardar.connect('clicked', self.guardar)
-		self.btnGuardar.set_sensitive(False)
+		self.btnGuardar.set_sensitive(False)#Para desabilidar el boton guardar en el inicio del programa
 		self.btnSubir = Gtk.Button(label='Subir')
 		self.btnSubir.connect('clicked', self.subir)
-		self.btnSubir.set_sensitive(False)
+		self.btnSubir.set_sensitive(False)#Para desabilidar el boton guardar en el inicio del programa
 		btnGrises = Gtk.Button(label='Grises')
 		btnGrises.connect('clicked', self.grises)
 
-		btnPrueba = Gtk.Button(label='Prueba')
+		btnPrueba = Gtk.Button(label='Prueba') #Boton de para probar cosas (No esta en la ventana)
 		btnPrueba.connect('clicked', self.prueba)
 
 		#Tamaño de la ventana
@@ -119,17 +116,6 @@ class ventana(Gtk.Window):
 		self.verificarSesion()
 
 
-
-	def imprimirCaptura(self, event):
-		'''
-		Para tomar una foto del estado actual del ScrolledWindow
-		:param event:
-		:return:
-		'''
-		now = datetime.now()
-		titulo = str(now.day) + '-' + str(now.month) + '-' + str(now.day) + '  ' + str(now.hour) + ':' + str(now.minute)
-		self.figure.savefig(os.getcwd()+'/capturas/'+titulo+'.png')
-
 	def create_ui_manager(self):
 		'''
 		Para el uso del barmenu
@@ -143,15 +129,26 @@ class ventana(Gtk.Window):
 
 
 	def resize(self,img, new_width=100):
+		'''
+		Toma como parametro el nuevo ancho deseado y redimensiona la imagen dada a
+		las nuevas dimensiones
+		'''
 		im = img
 		w,h = im.size
 		new_height = math.ceil(new_width * h / w)
 		return im.resize((new_width, new_height))
 
 	def imGris(self,img):
+		'''
+		Convierte la imagen a escala de grises (creo que al final no use esta cosa)
+		'''
 		return  img.convert('L')
 
 	def ASCII(self, img,chars):
+		'''
+		Una vez convertida la imagen convertida a escala de grises recorre todo pixel en la imagen
+		y da el caracter correspondiente a dicha tonalidad de gris del pixel
+		'''
 		rango = math.ceil(255/len(chars))
 		im = list(img.getdata())
 		pixels_ascii=[]
@@ -162,11 +159,18 @@ class ventana(Gtk.Window):
 
 
 	def convertir(self,widget):
+		'''
+		Agarra la imagen dada, convierte la imagen a escala de grises luego nos da todos los pixeles
+		en ASCII en un string y luego convierte ese string a imagen, luego de que ya tenemos la imagen
+		ASCII la ponemos en el canvas correspondiente
+		'''
 		w1,h1=self.imgPIL.size
 		img = self.resize(self.imgPIL.convert('L'),new_width=w1)
 		img = self.imGris(img)
 
 		if self.state == True:
+		#Ya que la tonalidad de gris se decide por los caracteres dados para poder invertir 
+		#su escala de grises basta con invertir la cadena de caracteres dados
 			self.chars = self.charsList[::-1]
 		else:
 			self.chars = self.charsList
@@ -197,24 +201,33 @@ class ventana(Gtk.Window):
 		self.imgPILASCII = Image.open(ruta)
 		os.remove(ruta)
 
+		#Esto activa los bonotes de guardado
 		l = self.action.list_actions()
 		for i in l:
 			if i.get_name() == 'guardarASCII':
 				i.set_sensitive(True)
 		self.btnGuardar.set_sensitive(True)
 		self.carga='Si'
+		#Verifica si hay credenciales validas de Twitter y de ser asi habilita el boton de subida a twitter
 		if self.sesion == 'Si':
 			self.btnSubir.set_sensitive(True)
 		if self.sesion == 'No':
 			self.btnSubir.set_sensitive(False)
 
 	def invertir(self,widget,name):
+		#Controla el toggle button
+		#Presionado significa que se tiene que invertir la imagen
+		#Sin presionar es que la imagen tiene que estar normal
 		if widget.get_active():
 			self.state = True
 		else:
 			self.state = False
 
 	def verificarSesion(self):
+		#Verifica si hay credenciales guardadas de Twitter 
+		#Osea, si anteriormente se ingresaron credenciales validas de twitter y no se cerro sesion entonces
+		#Se mantienen guardadas y esto verifica las que se guardaron y se guardan las credenciales como atributos
+		#para su uso posterior
 		ruta = os.getcwd()
 		ruta+='/InicioSesion.txt'
 		if os.path.isfile(ruta):
@@ -256,7 +269,8 @@ class ventana(Gtk.Window):
 
 	def guardar(self,widget):
 		'''
-		Cosas
+		Hace lo mismo que convertir pero me da el texto plano, con la diferencia que esto no lo muestra
+		tan detallado, si no que lo hace con una anchura de 100 para que pueda ser facilmente visible en un *.txt
 		:param widget:
 		:return:
 		'''
@@ -286,11 +300,13 @@ class ventana(Gtk.Window):
 		fo.close()
 
 	def subir(self,widget):
+		#Usa las credenciales guardadas en los atributos para poder subir la imagen a 
+		#Twiiter junto con el hashtag #ASCIIArtPM1
 		auth = tweepy.OAuthHandler(self.APIkey,self.APIkeyS)
 		auth.set_access_token(self.AccessToken,self.AccessTokenS)
-		#api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 		api = tweepy.API(auth)
-		temp = self.resize(self.imgPILASCII, new_width=1000)
+		#Redimensiona la imagen a 1000 de anchura para que no tenga tanto peso la imagen y pueda subirse la imagen
+		temp = self.resize(self.imgPILASCII, new_width=1000) 
 		temp.save('temp.png')
 		ruta = os.getcwd()
 		ruta+='/temp.png'
@@ -316,6 +332,7 @@ class ventana(Gtk.Window):
 		pass
 
 	def grises(self,widget):
+		#Abre una ventana para poder modificar la escalaa de grises
 		def clicked(button):
 			self.charsList = list(textBox.get_text())
 			self.chars = self.charsList
@@ -326,7 +343,6 @@ class ventana(Gtk.Window):
 		btnOk = Gtk.Button(label='Ok')
 		btnOk.connect('clicked', clicked)
 		label = Gtk.Label(label="Ingrese la escala de grises deseada")
-
 		container = Gtk.Grid()
 		container.set_row_spacing(5)
 		container.set_column_spacing(5)
@@ -339,7 +355,10 @@ class ventana(Gtk.Window):
 		b.show_all()
 
 	def signIn(self,widget):
-
+		#Abre una ventana en la cual podemos ingresar credenciales para poder subir cosas
+		#y verificar si son correctas, en caso de ser correctas las guarda como atributos
+		#ademas de guardarlo en un *.txt para poder ser incializadas la proxima vez que se abre el programa
+		#Si no son correctas cierra la ventana y no guarda nada
 		def ok(button):
 			self.APIkey = textBoxAPI.get_text()
 			self.APIkeyS = textBoxAPIS.get_text()
@@ -425,6 +444,8 @@ class ventana(Gtk.Window):
 		signIn.show_all()
 
 	def logOut(self,widget):
+		#Limpia los atributos de las credenciales y borra las credenciales guardadas en el *.txt
+		#Y abre la ventana para ingresar nuevas credenciales
 		self.APIkey = ''
 		self.APIkeyS = ''
 		self.AccessToken = ''
@@ -447,7 +468,6 @@ class ventana(Gtk.Window):
 		)
 		dialog.run()
 		dialog.destroy()
-
 		self.signIn(widget)
 
 	def menuArchivo(self, action_group):
@@ -470,7 +490,7 @@ class ventana(Gtk.Window):
 
 	def menuConfig(self, action_group):
 		'''
-		Pestaña 'Configuracion'
+		Pestaña 'Twitter'
 		:param action_group:
 		:return:
 		'''
@@ -501,7 +521,8 @@ class ventana(Gtk.Window):
 
 	def cargaImagen(self, widget):
 		'''
-		Selecciona un archivo para cargar en el ScrolledWindow
+		Selecciona un archivo para convertir a ASCII art y lo pone en el canvas correspondiente,
+		ademas cada vez que se carga una imagen inhabilida los botones subir y guardar
 		:param widget:
 		:return:
 		'''
